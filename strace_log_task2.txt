@@ -1,0 +1,6 @@
+execve("./task2", ["./task2"], 0x7ffedfb521f0 /* 25 vars */) = 0
+open("task2_output.txt", O_WRONLY|O_CREAT, 0644) = 3
+write(3, "Hello world!\n", 13)          = 13
+close(3)                                = 0
+exit(0)                                 = ?
++++ exited with 0 +++

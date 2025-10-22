@@ -1,0 +1,79 @@
+     1                                  %define OPEN  2
+     2                                  %define WRITE 1
+     3                                  %define CLOSE 3
+     4                                  %define EXIT  60
+     5                                  %define O_WRONLY  1
+     6                                  %define O_CREAT 0o100
+     7                                  %define O_MODE 0o644 ; Права rw-r--r--(владелец - читать/писать, группа - читать, остальные - читать)
+     8                                  
+     9                                  global _start
+    10                                  
+    11                                  section .data
+    12 00000000 7461736B325F6F7574-         filename db "task2_output.txt", 0 ; open ожидает нуль-терминированную строку
+    12 00000009 7075742E74787400   
+    13 00000011 48656C6C6F20776F72-         message db "Hello world!", 10
+    13 0000001A 6C64210A           
+    14                                      length  equ $ - message
+    15                                  
+    16                                  section .text
+    17                                  _start:
+    18                                      ; Открываем файл 
+    19 00000000 B802000000                  mov rax, OPEN ; Вызов open
+    20 00000005 48BF-                       mov rdi, filename
+    20 00000007 [0000000000000000] 
+    21 0000000F BE41000000                  mov rsi, O_CREAT | O_WRONLY ; Флаги(создать если нет, только запись)
+    22 00000014 BAA4010000                  mov rdx, O_MODE ; Права доступа(для создания)
+    23 00000019 0F05                        syscall
+    24                                      
+    25                                      ; Проверка на ошибку открытия
+    26 0000001B 4883F800                    cmp rax, 0
+    27 0000001F 7C44                        jl open_error
+    28                                  
+    29                                      ; сохраняем файловый дескриптор в rbx
+    30 00000021 4889C3                      mov rbx, rax
+    31                                      
+    32                                      ; Записываем в файл 
+    33 00000024 B801000000                  mov rax, WRITE ; Вызов write
+    34 00000029 4889DF                      mov rdi, rbx ; файловый дескриптор
+    35 0000002C 48BE-                       mov rsi, message
+    35 0000002E [1100000000000000] 
+    36 00000036 BA0D000000                  mov rdx, length
+    37 0000003B 0F05                        syscall
+    38                                  
+    39                                      ; Проверка результата записи
+    40 0000003D 4883F800                    cmp rax, 0
+    41 00000041 7C24                        jl write_error
+    42 00000043 4883F80D                    cmp rax, length
+    43 00000047 751E                        jne write_error
+    44                                  
+    45                                      ; Закрываем файл
+    46 00000049 B803000000                  mov rax, CLOSE ; Вызов close
+    47 0000004E 4889DF                      mov rdi, rbx ; файловый дескриптор
+    48 00000051 0F05                        syscall
+    49                                  
+    50                                      ; Проверка результата закрытия
+    51 00000053 4883F800                    cmp rax, 0
+    52 00000057 7C1A                        jl close_error
+    53                                  
+    54                                      ; Успешный выход
+    55 00000059 B83C000000                  mov rax, EXIT
+    56 0000005E BF00000000                  mov rdi, 0 ; Код возврата 0 (успех)
+    57 00000063 0F05                        syscall
+    58                                  
+    59                                  open_error:
+    60 00000065 EB0E                        jmp exit_error
+    61                                  
+    62                                  write_error:
+    63                                      ; Закрываем файл
+    64 00000067 B803000000                  mov rax, 3 ; Вызов close
+    65 0000006C 4889DF                      mov rdi, rbx ; файловый дескриптор
+    66 0000006F 0F05                        syscall
+    67 00000071 EB02                        jmp exit_error
+    68                                  
+    69                                  close_error:
+    70 00000073 EB00                        jmp exit_error
+    71                                  
+    72                                  exit_error:
+    73 00000075 B83C000000                  mov rax, EXIT ; Вызов exit
+    74 0000007A BF01000000                  mov rdi, 1 ; Код возврата 1 (ошибка)
+    75 0000007F 0F05                        syscall
