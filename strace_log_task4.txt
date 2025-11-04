@@ -1,0 +1,6 @@
+execve("./task4", ["./task4"], 0x7ffe923fcc30 /* 25 vars */) = 0
+read(0, "-10000\n", 7)                  = 7
+read(0, "2000\n", 7)                    = 5
+write(1, "-8000\n", 6)                  = 6
+exit(0)                                 = ?
++++ exited with 0 +++
